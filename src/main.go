@@ -10,13 +10,6 @@ import (
 
 type LineCallBack func(line string)
 
-func info(s string){
-    log.Println("INFO:", s)
-}
-func err(s string){
-    log.Println("ERROR:", s)
-}
-
 func readLines(path string, cb LineCallBack) (error) {
     file, err := os.Open(path)
     if err != nil {
@@ -35,24 +28,23 @@ func readLines(path string, cb LineCallBack) (error) {
 }
 
 func main() {
-
     if (len(os.Args[1:]) < 1) {
-        err("filename is a required argument")
+        log.Fatal("filename is a required argument")
         return
     }
 
     g := grok.New()
 
     err := readLines(os.Args[1], func(line string) {
-        info("--- got line --------------------------------------")
+        log.Println("--- got line --------------------------------------")
         values, _ := g.Parse("%{COMMONAPACHELOG}", line)
         for k, v := range values {
-            info(fmt.Sprintf("%+15s: %s", k, v))
+            log.Println(fmt.Sprintf("%+15s: %s", k, v))
         }
     })
 
     if (err != nil) {
-        fmt.Println(err)
+        log.Fatal(err)
     }
 }
 
