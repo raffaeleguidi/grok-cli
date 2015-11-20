@@ -1,0 +1,10 @@
+echo
+echo Building grok-cli
+echo ------------------------------------
+echo building macosx
+go build -o dist/amd64/macosx/grok src/grok-cli.go
+#echo building windows
+#GOOS=windows go build -o dist/amd64/windows/bridge.exe src/bridge.go
+#echo building linux
+#GOOS=linux go build -o dist/amd64/linux/bridge src/bridge.go
+echo
