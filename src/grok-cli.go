@@ -29,10 +29,11 @@ func readLines(path string, cb LineCallBack) (error) {
 
 func main() {
     if (len(os.Args[1:]) < 2) {
+        fmt.Println("--------------------------------")
         fmt.Println("grok")
         fmt.Println("--------------------------------")
         fmt.Println("usage: ")
-        fmt.Println("\tgrok <filename> <pattern>\n\r")
+        fmt.Println("\tgrok <filename> \"<pattern>\"\n\r")
         fmt.Println("*error* filename and pattern are required arguments")
         return
     }
