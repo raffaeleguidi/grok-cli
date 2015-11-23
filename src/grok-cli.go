@@ -7,6 +7,7 @@ import (
     "strings"
     "log"
     "os"
+    "io/ioutil"
 )
 
 type LineCallBack func(line string)
@@ -28,13 +29,35 @@ func readLines(path string, cb LineCallBack) (error) {
     return scanner.Err()
 }
 
+func loadPatternsFile(filename string, g grok.Grok) (error){
+    err := readLines(filename, func(line string) {
+        n := strings.Index(line, " ")
+        name := line[:n]
+        body := line[n+1:]
+        g.AddPattern(name, body)
+    })
+    return err
+}
+
+func loadPatternsDir(patternsDir string, g grok.Grok) (error){
+    files, _ := ioutil.ReadDir(patternsDir)
+    for _, f := range files {
+        fmt.Println("loading file", patternsDir + f.Name())
+        err := loadPatternsFile(patternsDir + f.Name(), g)
+        if (err != nil) {
+            return err
+        }
+    }
+    return nil
+}
+
 func main() {
     if (len(os.Args[1:]) < 2) {
         fmt.Println("--------------------------------")
         fmt.Println("grok")
         fmt.Println("--------------------------------")
         fmt.Println("usage: ")
-        fmt.Println("\tgrok <filename> \"<pattern>\" [patternsFile] [newLinePattern]\n\r")
+        fmt.Println("\tgrok <filename> \"<pattern>\" [patternsDir] [newLinePattern]\n\r")
         fmt.Println("*error* filename and pattern are required arguments")
         return
     }
@@ -47,21 +70,11 @@ func main() {
     fmt.Println("...scanning", file, "for pattern", pattern)
 
     if len(os.Args[1:]) >= 3 {
-//        patternsDir := os.Args[3]
-//        g.AddPatternsFromPath(patternsDir) // bit wirjubg
-        patternsFile := os.Args[3]
-        err := readLines(patternsFile, func(line string) {
-            n := strings.Index(line, " ")
-            name := line[:n]
-            body := line[n+1:]
-            g.AddPattern(name, body)
-        })
-
+        patternsDir := os.Args[3]
+        err := loadPatternsDir(patternsDir, *g) //g.AddPatternsFromPath(patternsDir) // not working!
         if (err != nil) {
             log.Fatalf("oops", err)
         }
-
-
     }
 
     if len(os.Args[1:]) >= 4 {
@@ -73,7 +86,6 @@ func main() {
 
     err := readLines(file, func(line string) {
         log.Println("--- newline --------------------------------------")
-        //values, _ := g.Parse("%{COMMONAPACHELOG}", line)
         values, _ := g.Parse(pattern, line)
         for k, v := range values {
             log.Println(fmt.Sprintf("%+15s: %s", k, v))
