@@ -28,16 +28,26 @@ func readLines(path string, cb LineCallBack) (error) {
 }
 
 func main() {
-    if (len(os.Args[1:]) < 1) {
-        log.Fatal("filename is a required argument")
+    if (len(os.Args[1:]) < 2) {
+        fmt.Println("grok")
+        fmt.Println("--------------------------------")
+        fmt.Println("usage: ")
+        fmt.Println("\tgrok <filename> <pattern>\n\r")
+        fmt.Println("*error* filename and pattern are required arguments")
         return
     }
 
+    file := os.Args[1]
+    pattern := os.Args[2]
+    //patternsDir := os.Args[3]
+    //newLinePattern := os.Args[4] // yet to be implemented
+
     g := grok.New()
 
-    err := readLines(os.Args[1], func(line string) {
-        log.Println("--- got line --------------------------------------")
-        values, _ := g.Parse("%{COMMONAPACHELOG}", line)
+    err := readLines(file, func(line string) {
+        log.Println("--- newline --------------------------------------")
+        //values, _ := g.Parse("%{COMMONAPACHELOG}", line)
+        values, _ := g.Parse(pattern, line)
         for k, v := range values {
             log.Println(fmt.Sprintf("%+15s: %s", k, v))
         }
