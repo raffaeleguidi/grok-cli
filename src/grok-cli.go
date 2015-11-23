@@ -8,6 +8,7 @@ import (
     "log"
     "os"
     "io/ioutil"
+    "regexp"
 )
 
 type LineCallBack func(line string)
@@ -25,6 +26,46 @@ func readLines(path string, cb LineCallBack) (error) {
     for scanner.Scan() {
         cb(scanner.Text())
       //lines = append(lines, scanner.Text())
+    }
+    return scanner.Err()
+}
+
+func array2string(array []string) (string) {
+    return strings.Join(array, "\n")
+}
+
+func readLinesWithRegex(path string, newlineRegexp string, cb LineCallBack) (error) {
+    file, err := os.Open(path)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+
+    r, _ := regexp.Compile(newlineRegexp)
+
+    scanner := bufio.NewScanner(file)
+
+    var lines []string //keep it for multiline
+    for scanner.Scan() {
+        thisLine := scanner.Text()
+        if !r.Match([]byte(thisLine)) {
+            fmt.Println("not newline", thisLine)
+            if (len(lines) > 0) {
+                cb(array2string(lines))
+                lines = []string{}
+            }
+        } else {
+            if (len(lines) > 0) {
+                cb(array2string(lines))
+                lines = []string{}
+            }
+            fmt.Println("newline", thisLine)
+            lines = append(lines, scanner.Text())
+        }
+    }
+    if (len(lines) > 0) {
+        fmt.Println("lastline", array2string(lines))
+        cb(array2string(lines))
     }
     return scanner.Err()
 }
@@ -85,7 +126,8 @@ func main() {
     // yet to be implemented
 
     err := readLines(file, func(line string) {
-        log.Println("--- newline --------------------------------------")
+//    err := readLinesWithRegex(file, "^\\d", func(line string) {
+        log.Println("--- newline ---", line)
         values, _ := g.Parse(pattern, line)
         for k, v := range values {
             log.Println(fmt.Sprintf("%+15s: %s", k, v))
